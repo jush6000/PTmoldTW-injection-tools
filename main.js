@@ -1,11 +1,15 @@
 document.addEventListener("DOMContentLoaded", function() {
-    // 定義計算機 ID
-    var appID = "clamping-calculator-app";
-    var container = document.getElementById(appID);
 
-    // 只有在偵測到文章裡有那個 div 時才執行
-    if (container) {
-        
+    // ============================================================
+    // 模組 1：鎖模力估算器 (Clamping Force Calculator)
+    // 對應 HTML ID: <div id="clamping-calculator-app"></div>
+    // ============================================================
+    var clampingID = "clamping-calculator-app";
+    var clampingContainer = document.getElementById(clampingID);
+
+    if (clampingContainer) {
+        console.log("正在載入：鎖模力估算器...");
+
         // --- 1. 定義材料數據 ---
         var materials = [
             { name: "PP / PE (聚丙烯/聚乙烯)", pressure: 300 },
@@ -20,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function() {
             return '<option value="' + m.pressure + '">' + m.name + '</option>';
         }).join('');
         
-        container.innerHTML = 
+        clampingContainer.innerHTML = 
             '<div style="background:#fff; padding:25px; border:1px solid #ddd; border-radius:10px; max-width:500px; margin:0 auto; box-shadow:0 4px 10px rgba(0,0,0,0.05);">' +
                 '<h3 style="margin-top:0; color:#333; text-align:center; border-bottom:2px solid #007bff; padding-bottom:10px; margin-bottom:20px;">🛠️ 鎖模力估算器</h3>' +
                 
@@ -64,4 +68,18 @@ document.addEventListener("DOMContentLoaded", function() {
             resBox.innerHTML = '<span style="color:#333; font-size:14px;">建議最小鎖模力：</span><br><span style="font-size:28px;">' + force.toFixed(1) + '</span> <span style="font-size:16px;">噸 (Tons)</span>';
         });
     }
+
+    // ============================================================
+    // 模組 2：(預留位置) 冷卻時間估算器
+    // 對應 HTML ID: <div id="cooling-time-app"></div>
+    // ============================================================
+    var coolingID = "cooling-time-app"; // 未來如果要寫冷卻計算，ID就取這個
+    var coolingContainer = document.getElementById(coolingID);
+
+    if (coolingContainer) {
+        // 未來這裡可以寫第二個工具的程式碼...
+        console.log("正在載入：冷卻時間估算器...");
+        coolingContainer.innerHTML = "<h3>🚧 冷卻時間計算功能開發中...</h3>";
+    }
+
 });
