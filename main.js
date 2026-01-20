@@ -197,4 +197,92 @@ document.addEventListener("DOMContentLoaded", function() {
         ton.addEventListener("input", function(){ kn.value = (this.value * 9.807).toFixed(1); });
         kn.addEventListener("input", function(){ ton.value = (this.value / 9.807).toFixed(1); });
     }
+    // ============================================================
+    // 工具 4：[新增] 產能試算機 (Production Capacity)
+    // ID: production-capacity-app
+    // ============================================================
+    var prodContainer = document.getElementById("production-capacity-app");
+    if (prodContainer) {
+        console.log("載入工具 4：產能試算...");
+        
+        prodContainer.innerHTML = 
+            '<div style="background:#fff; padding:25px; border:1px solid #ddd; border-radius:10px; max-width:500px; margin:0 auto; box-shadow:0 4px 10px rgba(0,0,0,0.05);">' +
+                '<h3 style="margin-top:0; color:#dc3545; text-align:center; border-bottom:2px solid #dc3545; padding-bottom:10px; margin-bottom:20px;">🏭 射出產能試算機</h3>' +
+                
+                '<div style="display:flex; gap:15px; margin-bottom:15px;">' +
+                    '<div style="flex:1;">' +
+                        '<label style="display:block; font-weight:bold; margin-bottom:5px;">成型週期 (秒)</label>' +
+                        '<input type="number" id="p-cycle" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;" placeholder="Cycle Time">' +
+                    '</div>' +
+                    '<div style="flex:1;">' +
+                        '<label style="display:block; font-weight:bold; margin-bottom:5px;">模穴數 (穴)</label>' +
+                        '<input type="number" id="p-cavity" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;" placeholder="Cavities">' +
+                    '</div>' +
+                '</div>' +
+
+                '<div style="margin-bottom:15px;">' +
+                    '<label style="display:block; font-weight:bold; margin-bottom:5px;">工作時數 (小時/天)</label>' +
+                    '<select id="p-hours" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; background:white;">' +
+                        '<option value="8">8 小時 (單班)</option>' +
+                        '<option value="12">12 小時 (1.5班)</option>' +
+                        '<option value="24">24 小時 (全天)</option>' +
+                        '<option value="custom">自訂...</option>' +
+                    '</select>' +
+                    '<input type="number" id="p-hours-custom" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; margin-top:5px; display:none;" placeholder="輸入時數">' +
+                '</div>' +
+
+                '<div style="margin-bottom:20px;">' +
+                    '<label style="display:block; font-weight:bold; margin-bottom:5px;">稼動率 (%)</label>' +
+                    '<input type="number" id="p-efficiency" value="90" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;">' +
+                    '<div style="font-size:12px; color:#888;">*扣除換模、故障等停機時間 (建議 85-95%)</div>' +
+                '</div>' +
+
+                '<button id="p-btn" style="width:100%; background:#dc3545; color:#fff; padding:12px; border:none; border-radius:5px; cursor:pointer; font-weight:bold; font-size:16px;">計算產量</button>' +
+
+                '<div id="p-res" style="margin-top:20px; padding:15px; background:#f8d7da; color:#721c24; border-radius:5px; display:none; border:1px solid #f5c6cb;"></div>' +
+            '</div>';
+
+        // 處理自訂時數顯示
+        document.getElementById("p-hours").addEventListener("change", function() {
+            var customInput = document.getElementById("p-hours-custom");
+            if (this.value === "custom") {
+                customInput.style.display = "block";
+            } else {
+                customInput.style.display = "none";
+            }
+        });
+
+        // 計算邏輯
+        document.getElementById("p-btn").addEventListener("click", function() {
+            var cycle = parseFloat(document.getElementById("p-cycle").value);
+            var cavity = parseFloat(document.getElementById("p-cavity").value);
+            var eff = parseFloat(document.getElementById("p-efficiency").value) / 100;
+            
+            var hours = document.getElementById("p-hours").value;
+            if (hours === "custom") {
+                hours = parseFloat(document.getElementById("p-hours-custom").value);
+            } else {
+                hours = parseFloat(hours);
+            }
+
+            if (!cycle || !cavity || !hours) return alert("請輸入完整數據");
+
+            // 公式：(3600秒 / 週期) * 穴數 * 時數 * 稼動率
+            var hourlyOutput = (3600 / cycle) * cavity * eff;
+            var dailyOutput = hourlyOutput * hours;
+
+            var resBox = document.getElementById("p-res");
+            resBox.style.display = "block";
+            resBox.innerHTML = 
+                '<div style="display:flex; justify-content:space-between; margin-bottom:5px;">' +
+                    '<span>每小時產量 (PCS):</span>' +
+                    '<strong style="font-size:18px;">' + Math.floor(hourlyOutput).toLocaleString() + '</strong>' +
+                '</div>' +
+                '<hr style="border-top:1px solid #f5c6cb; margin:10px 0;">' +
+                '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+                    '<span>每日產量 (PCS):</span>' +
+                    '<strong style="font-size:28px;">' + Math.floor(dailyOutput).toLocaleString() + '</strong>' +
+                '</div>';
+        });
+    }
 });
