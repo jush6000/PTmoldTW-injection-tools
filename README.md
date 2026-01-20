@@ -81,5 +81,3 @@
 
 此專案採用 MIT License 開源授權。
 Developed for **PTmoldTW (寶泰模具)**.
-
-```
