@@ -1,4 +1,4 @@
-# PTmoldTW-Injection Molding Tools (塑膠射出數位工具箱)
+# PTmoldTW Injection Molding Tools (塑膠射出數位工具箱)
 
 這是一個專為塑膠射出成型產業 (Injection Molding Industry) 開發的輕量級 JavaScript 工具庫。
 旨在透過 CDN 方式，快速將實用的工程計算功能嵌入至任何 CMS 網站（如 WordPress, Joomla 或客製化網站）中。
