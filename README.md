@@ -12,7 +12,7 @@
 
 ## 🛠️ 收錄工具 (Tools Included)
 
-目前 `main.js` 中包含以下四種工具：
+目前 `tool.js` 中包含以下四種工具：
 
 1.  **鎖模力估算器 (Clamping Force Calculator)**
     * 依據產品長寬與材料特性，計算建議的機台噸數。
@@ -33,7 +33,7 @@
 請在您的網站後台 (如 Google GTM 或 Footer 區域) 加入以下程式碼：
 
 ```html
-<script src="[https://cdn.jsdelivr.net/gh/jush6000/injection-tools@main/main.js](https://cdn.jsdelivr.net/gh/jush6000/injection-tools@main/main.js)"></script>
+<script src="[https://cdn.jsdelivr.net/gh/jush6000/injection-tools@main/main.js](https://cdn.jsdelivr.net/gh/jush6000/injection-tools@main/tool.js)"></script>
 
 ```
 
@@ -73,7 +73,7 @@
 
 ## ⚠️ 注意事項 (Notes)
 
-1. **快取問題**：透過 jsDelivr 引用時，更新 GitHub 後約需 **15~20 分鐘** 才會在網頁上生效。若需強制刷新，可將連結改為 `main.js?v=2` 等方式測試。
+1. **快取問題**：透過 jsDelivr 引用時，更新 GitHub 後約需 **15~20 分鐘** 才會在網頁上生效。若需強制刷新，可將連結改為 `tool.js?v=2` 等方式測試。
 2. **ID 衝突**：請確保單一頁面中不要重複出現相同的 ID。
 3. **計算誤差**：所有工具均採用業界通用經驗公式，僅供報價與初步評估參考，精密成型仍建議參考模流分析 (Moldflow) 數據。
 
