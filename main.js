@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function() {
 
     // ============================================================
-    // 模組 1：鎖模力估算器 (升級版：支援長寬輸入)
+    // 模組 1：鎖模力估算器
     // ============================================================
     var clampingID = "clamping-calculator-app";
     var clampingContainer = document.getElementById(clampingID);
