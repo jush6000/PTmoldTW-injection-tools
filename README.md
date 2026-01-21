@@ -33,7 +33,7 @@
 請在您的網站後台 (如 Google GTM 或 Footer 區域) 加入以下程式碼：
 
 ```html
-<script src="[https://cdn.jsdelivr.net/gh/jush6000/injection-tools@main/main.js](https://cdn.jsdelivr.net/gh/jush6000/injection-tools@main/tool.js)"></script>
+<script src="[https://cdn.jsdelivr.net/gh/jush6000/PTmoldTW-injection-tools@main/main.js](https://cdn.jsdelivr.net/gh/jush6000/PTmoldTW-injection-tools@main/tool.js)"></script>
 
 ```
 
