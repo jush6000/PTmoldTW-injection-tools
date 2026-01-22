@@ -330,11 +330,11 @@ document.addEventListener("DOMContentLoaded", function() {
                     '<label style="font-weight:bold; display:block; margin-bottom:5px;">2. 產品數據</label>' +
                     '<div style="display:flex; gap:10px; margin-bottom:10px;">' +
                         '<div style="flex:1;"><input type="number" id="m-weight" placeholder="成品重 (g)" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></div>' +
-                        '<div style="flex:1;"><input type="number" id="m-cav" placeholder="穴數" value="1" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></div>' +
+                        '<div style="flex:1;"><input type="number" id="m-cav" placeholder="穴數" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></div>' +
                     '</div>' +
                     '<div style="display:flex; gap:10px;">' +
-                        '<div style="flex:1;"><input type="number" id="m-runner" placeholder="流道重 (g)" value="0" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></div>' +
-                        '<div style="flex:1;"><input type="number" id="m-cushion" placeholder="預留 (mm)" value="5" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></div>' +
+                        '<div style="flex:1;"><input type="number" id="m-runner" placeholder="流道重 (g)" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></div>' +
+                        '<div style="flex:1;"><input type="number" id="m-cushion" placeholder="預留 (mm)" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></div>' +
                     '</div>' +
                 '</div>' +
 
