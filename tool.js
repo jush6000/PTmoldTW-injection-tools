@@ -198,7 +198,7 @@ document.addEventListener("DOMContentLoaded", function() {
         kn.addEventListener("input", function(){ ton.value = (this.value / 9.807).toFixed(1); });
     }
     // ============================================================
-    // 工具 4：[新增] 產能試算機 (Production Capacity)
+    // 工具 4：產能試算機 (Production Capacity)
     // ID: production-capacity-app
     // ============================================================
     var prodContainer = document.getElementById("production-capacity-app");
@@ -285,4 +285,118 @@ document.addEventListener("DOMContentLoaded", function() {
                 '</div>';
         });
     }
+    // ============================================================
+    // 工具 5：成型計量計算機 (Shot Size Calculator)
+    // ID: material-metering-app
+    // ============================================================
+    var meteringContainer = document.getElementById("material-metering-app");
+    if (meteringContainer) {
+        console.log("載入工具 5：計量計算機...");
+
+        // 1. 移植 Python 的比重表
+        var matData = {
+            "ABS": 1.05, "ABS防火": 1.17, "ABS+30%GF": 1.28, "AS": 1.06,
+            "HDPE": 0.96, "LDPE": 0.92, "PA6": 1.13, "PA6+15%GF": 1.23,
+            "PA6+30%GF": 1.35, "PA6+50%GF": 1.56, "PA66": 1.13, "PA66+15%GF": 1.23,
+            "PA66+30%GF": 1.39, "PBT": 1.31, "PBT+15%GF": 1.45, "PBT+30%GF (1)": 1.52,
+            "PBT+30%GF (2)": 1.60, "PC": 1.20, "PC/ABS": 1.13, "PC+10%GF": 1.27,
+            "PMMA": 1.19, "POM": 1.41, "POM+25%GF": 1.59, "PP": 0.90,
+            "PP+10%GF": 0.99, "PP+30%GF": 1.12, "PP+30%MF": 1.13, "PP+40%MF": 1.23,
+            "PPO": 1.10, "PPS+30%GF": 1.52, "PPS+40%GF": 1.66, "PS": 1.10
+        };
+
+        var matOptions = '<option value="" disabled selected>請選擇材質</option>';
+        for (var key in matData) {
+            matOptions += '<option value="' + matData[key] + '">' + key + '</option>';
+        }
+
+        // 2. 建立 UI
+        meteringContainer.innerHTML = 
+            '<div style="background:#fff; padding:25px; border:1px solid #ddd; border-radius:10px; max-width:500px; margin:0 auto; box-shadow:0 4px 10px rgba(0,0,0,0.05);">' +
+                '<h3 style="margin-top:0; color:#0d6efd; text-align:center; border-bottom:2px solid #0d6efd; padding-bottom:10px; margin-bottom:20px;">📏 成型計量計算機</h3>' +
+                
+                // 螺桿與材質
+                '<div style="background:#f8f9fa; padding:15px; border-radius:5px; margin-bottom:15px;">' +
+                    '<label style="font-weight:bold; display:block; margin-bottom:5px;">1. 機台與材質</label>' +
+                    '<div style="display:flex; gap:10px; margin-bottom:10px;">' +
+                        '<div style="flex:1;"><input type="number" id="m-screw" placeholder="螺桿直徑 mm" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></div>' +
+                        '<div style="flex:1;"><select id="m-mat" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">' + matOptions + '</select></div>' +
+                    '</div>' +
+                    '<input type="number" id="m-density" placeholder="比重 (自動帶入)" step="0.01" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; background:#e9ecef;">' +
+                '</div>' +
+
+                // 產品重量
+                '<div style="background:#f8f9fa; padding:15px; border-radius:5px; margin-bottom:15px;">' +
+                    '<label style="font-weight:bold; display:block; margin-bottom:5px;">2. 產品數據</label>' +
+                    '<div style="display:flex; gap:10px; margin-bottom:10px;">' +
+                        '<div style="flex:1;"><input type="number" id="m-weight" placeholder="成品重 (g)" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></div>' +
+                        '<div style="flex:1;"><input type="number" id="m-cav" placeholder="穴數" value="1" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></div>' +
+                    '</div>' +
+                    '<div style="display:flex; gap:10px;">' +
+                        '<div style="flex:1;"><input type="number" id="m-runner" placeholder="流道重 (g)" value="0" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></div>' +
+                        '<div style="flex:1;"><input type="number" id="m-cushion" placeholder="預留 (mm)" value="5" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></div>' +
+                    '</div>' +
+                '</div>' +
+
+                '<button id="m-btn" style="width:100%; background:#0d6efd; color:#fff; padding:12px; border:none; border-radius:5px; cursor:pointer; font-weight:bold; font-size:16px;">計算行程</button>' +
+
+                '<div id="m-res" style="margin-top:20px; padding:15px; background:#e7f1ff; color:#084298; border-radius:5px; display:none; border:1px solid #b6d4fe;"></div>' +
+            '</div>';
+
+        // 事件綁定：材質改變時更新比重
+        var matSelect = document.getElementById("m-mat");
+        var denInput = document.getElementById("m-density");
+        matSelect.addEventListener("change", function() {
+            denInput.value = this.value;
+        });
+
+        // 計算邏輯
+        document.getElementById("m-btn").addEventListener("click", function() {
+            var screw = parseFloat(document.getElementById("m-screw").value);
+            var density = parseFloat(document.getElementById("m-density").value);
+            var weight = parseFloat(document.getElementById("m-weight").value);
+            var cav = parseFloat(document.getElementById("m-cav").value);
+            var runner = parseFloat(document.getElementById("m-runner").value) || 0;
+            var cushion = parseFloat(document.getElementById("m-cushion").value) || 5;
+
+            if (!screw || !density || !weight || !cav) return alert("請輸入完整數據");
+
+            // 1. 計算理論 1mm 體積 (cm^3) = PI * r^2 * 0.1
+            // r = screw / 2 / 10 (轉cm)
+            var r = (screw / 2) / 10;
+            var volPerMM = Math.PI * r * r * 0.1;
+            
+            // 2. 總重量
+            var totalWeight = (weight * cav) + runner;
+
+            // 3. 換算行程 (總重 / 比重 / 1mm體積) -> 這裡直接用物理公式: 總體積 / 1mm體積
+            // 總體積 (cm^3) = totalWeight / density
+            var totalVol = totalWeight / density;
+            var totalStroke = totalVol / volPerMM;
+
+            // 4. 儲料位置 (總行程 + 預留)
+            var storagePos = totalStroke + cushion;
+
+            // 5. 第一段射出 (扣除流道後的行程) - 這是您 Python 代碼的特殊邏輯
+            // 流道體積 = runner / density
+            // 流道行程 = 流道體積 / volPerMM
+            // 第一段 = 儲料位置 - 流道行程
+            var runnerVol = runner / density;
+            var runnerStroke = runnerVol / volPerMM;
+            var firstStage = storagePos - runnerStroke;
+
+            // 6. 殘量監控 (5% + cushion)
+            var finalStage = (totalStroke * 0.05) + cushion;
+
+            var resBox = document.getElementById("m-res");
+            resBox.style.display = "block";
+            resBox.innerHTML = 
+                '<div style="text-align:center; margin-bottom:10px; font-weight:bold;">總射出重量：' + totalWeight.toFixed(2) + ' g</div>' +
+                '<hr style="border-top:1px solid #b6d4fe; margin:10px 0;">' +
+                '<div style="display:flex; justify-content:space-between;"><span>建議儲料位置:</span><strong>' + storagePos.toFixed(1) + ' mm</strong></div>' +
+                '<div style="display:flex; justify-content:space-between; color:#666; font-size:14px;"><span>(扣除流道後):</span><span>' + firstStage.toFixed(1) + ' mm</span></div>' +
+                '<div style="display:flex; justify-content:space-between; margin-top:5px;"><span>殘量監控點:</span><strong>' + finalStage.toFixed(1) + ' mm</strong></div>';
+        });
+    }
+
 });
