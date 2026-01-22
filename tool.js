@@ -310,7 +310,7 @@ document.addEventListener("DOMContentLoaded", function() {
             matOptions += '<option value="' + matData[key] + '">' + key + '</option>';
         }
 
-        // 2. 建立 UI (已移除 value 預設值)
+        // 2. 建立 UI
         meteringContainer.innerHTML = 
             '<div style="background:#fff; padding:25px; border:1px solid #ddd; border-radius:10px; max-width:500px; margin:0 auto; box-shadow:0 4px 10px rgba(0,0,0,0.05);">' +
                 '<h3 style="margin-top:0; color:#0d6efd; text-align:center; border-bottom:2px solid #0d6efd; padding-bottom:10px; margin-bottom:20px;">📏 成型計量計算機</h3>' +
@@ -325,7 +325,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     '<input type="number" id="m-density" placeholder="比重 (自動帶入)" step="0.01" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; background:#e9ecef;">' +
                 '</div>' +
 
-                // 產品數據 (移除 value="1", value="0", value="5")
+                // 產品數據
                 '<div style="background:#f8f9fa; padding:15px; border-radius:5px; margin-bottom:15px;">' +
                     '<label style="font-weight:bold; display:block; margin-bottom:5px;">2. 產品數據</label>' +
                     '<div style="display:flex; gap:10px; margin-bottom:10px;">' +
