@@ -310,7 +310,7 @@ document.addEventListener("DOMContentLoaded", function() {
             matOptions += '<option value="' + matData[key] + '">' + key + '</option>';
         }
 
-        // 2. 建立 UI
+        // 2. 建立 UI (已移除 value 預設值)
         meteringContainer.innerHTML = 
             '<div style="background:#fff; padding:25px; border:1px solid #ddd; border-radius:10px; max-width:500px; margin:0 auto; box-shadow:0 4px 10px rgba(0,0,0,0.05);">' +
                 '<h3 style="margin-top:0; color:#0d6efd; text-align:center; border-bottom:2px solid #0d6efd; padding-bottom:10px; margin-bottom:20px;">📏 成型計量計算機</h3>' +
@@ -325,7 +325,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     '<input type="number" id="m-density" placeholder="比重 (自動帶入)" step="0.01" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; background:#e9ecef;">' +
                 '</div>' +
 
-                // 產品重量
+                // 產品數據 (移除 value="1", value="0", value="5")
                 '<div style="background:#f8f9fa; padding:15px; border-radius:5px; margin-bottom:15px;">' +
                     '<label style="font-weight:bold; display:block; margin-bottom:5px;">2. 產品數據</label>' +
                     '<div style="display:flex; gap:10px; margin-bottom:10px;">' +
@@ -356,10 +356,13 @@ document.addEventListener("DOMContentLoaded", function() {
             var density = parseFloat(document.getElementById("m-density").value);
             var weight = parseFloat(document.getElementById("m-weight").value);
             var cav = parseFloat(document.getElementById("m-cav").value);
+            
+            // 如果沒填，流道預設算 0，預留預設算 5 (這是為了計算不會報錯，但介面上是空的)
             var runner = parseFloat(document.getElementById("m-runner").value) || 0;
             var cushion = parseFloat(document.getElementById("m-cushion").value) || 5;
 
-            if (!screw || !density || !weight || !cav) return alert("請輸入完整數據");
+            // 必填檢查
+            if (!screw || !density || !weight || !cav) return alert("請輸入完整數據 (螺桿、材質、成品重、穴數)");
 
             // 1. 計算理論 1mm 體積 (cm^3) = PI * r^2 * 0.1
             // r = screw / 2 / 10 (轉cm)
@@ -369,23 +372,19 @@ document.addEventListener("DOMContentLoaded", function() {
             // 2. 總重量
             var totalWeight = (weight * cav) + runner;
 
-            // 3. 換算行程 (總重 / 比重 / 1mm體積) -> 這裡直接用物理公式: 總體積 / 1mm體積
-            // 總體積 (cm^3) = totalWeight / density
+            // 3. 換算行程 (總重 / 比重 / 1mm體積)
             var totalVol = totalWeight / density;
             var totalStroke = totalVol / volPerMM;
 
             // 4. 儲料位置 (總行程 + 預留)
             var storagePos = totalStroke + cushion;
 
-            // 5. 第一段射出 (扣除流道後的行程) - 這是您 Python 代碼的特殊邏輯
-            // 流道體積 = runner / density
-            // 流道行程 = 流道體積 / volPerMM
-            // 第一段 = 儲料位置 - 流道行程
+            // 5. 第一段射出
             var runnerVol = runner / density;
             var runnerStroke = runnerVol / volPerMM;
             var firstStage = storagePos - runnerStroke;
 
-            // 6. 殘量監控 (5% + cushion)
+            // 6. 殘量監控
             var finalStage = (totalStroke * 0.05) + cushion;
 
             var resBox = document.getElementById("m-res");
@@ -398,5 +397,4 @@ document.addEventListener("DOMContentLoaded", function() {
                 '<div style="display:flex; justify-content:space-between; margin-top:5px;"><span>殘量監控點:</span><strong>' + finalStage.toFixed(1) + ' mm</strong></div>';
         });
     }
-
 });
