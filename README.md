@@ -68,6 +68,12 @@
 <div id="production-capacity-app"></div>
 
 ```
+#### 5. 成型計量計算機
+
+```html
+<div id="material-metering-app"></div>
+
+```
 
 ---
 
