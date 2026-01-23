@@ -74,7 +74,7 @@
 <div id="material-metering-app"></div>
 
 ```
-#### 5. 滯留時間計算機
+#### 6. 滯留時間計算機
 
 ```html
 <div id="residence-time-app"></div>
