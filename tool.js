@@ -397,4 +397,79 @@ document.addEventListener("DOMContentLoaded", function() {
                 '<div style="display:flex; justify-content:space-between; margin-top:5px;"><span>殘量監控點:</span><strong>' + finalStage.toFixed(1) + ' mm</strong></div>';
         });
     }
+    // ============================================================
+    // 工具 6：滯留時間計算機 (Residence Time)
+    // ID: residence-time-app
+    // ============================================================
+    var resCon = document.getElementById("residence-time-app");
+    if (resCon) {
+        console.log("載入工具 6：滯留時間...");
+        var rMats = {"PP":0.9,"ABS":1.05,"PC":1.2,"PA66":1.13,"POM":1.41,"PBT":1.31,"PMMA":1.19};
+        var rOpt = '<option value="" disabled selected>選擇材質</option>'; for(var k in rMats) rOpt+='<option value="'+rMats[k]+'">'+k+'</option>';
+
+        resCon.innerHTML = 
+            '<div style="background:#fff; padding:25px; border:1px solid #ddd; border-radius:10px; max-width:500px; margin:0 auto; box-shadow:0 4px 10px rgba(0,0,0,0.05);">' +
+                '<h3 style="margin-top:0; color:#fd7e14; text-align:center; border-bottom:2px solid #fd7e14; padding-bottom:10px; margin-bottom:20px;">🔥 滯留時間計算機</h3>' +
+                
+                '<div style="margin-bottom:15px;">' +
+                    '<label style="font-weight:bold; display:block; margin-bottom:5px;">1. 機台規格</label>' +
+                    '<input type="number" id="r-cap" placeholder="機台最大射出量 (PS克數)" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;">' +
+                    '<div style="font-size:12px; color:#888;">*請查閱機台銘牌 (Max Shot Weight)</div>' +
+                '</div>' +
+
+                '<div style="margin-bottom:15px;">' +
+                    '<label style="font-weight:bold; display:block; margin-bottom:5px;">2. 生產數據</label>' +
+                    '<div style="display:flex; gap:10px;">' +
+                        '<input type="number" id="r-shot" placeholder="總射出重 (g)" style="flex:1; padding:10px; border:1px solid #ccc; border-radius:5px;">' +
+                        '<input type="number" id="r-cyc" placeholder="週期 (秒)" style="flex:1; padding:10px; border:1px solid #ccc; border-radius:5px;">' +
+                    '</div>' +
+                '</div>' +
+
+                '<div style="margin-bottom:20px;">' +
+                    '<label style="font-weight:bold; display:block; margin-bottom:5px;">3. 使用材質</label>' +
+                    '<select id="r-mat" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;">' + rOpt + '</select>' +
+                '</div>' +
+
+                '<button id="r-btn" style="width:100%; background:#fd7e14; color:#fff; padding:12px; border:none; border-radius:5px; cursor:pointer; font-weight:bold; font-size:16px;">計算時間</button>' +
+
+                '<div id="r-res" style="margin-top:20px; padding:15px; background:#fff3cd; color:#856404; border-radius:5px; display:none; border:1px solid #ffeeba;"></div>' +
+            '</div>';
+
+        document.getElementById("r-btn").addEventListener("click", function() {
+            var cap = parseFloat(document.getElementById("r-cap").value);
+            var shot = parseFloat(document.getElementById("r-shot").value);
+            var cyc = parseFloat(document.getElementById("r-cyc").value);
+            var den = parseFloat(document.getElementById("r-mat").value);
+
+            if (!cap || !shot || !cyc || !den) return alert("請輸入完整數據");
+
+            // 核心公式：
+            // 1. 機台實際容量 (修正比重) = 銘牌容量(PS) * (材料比重 / 1.05)
+            // 2. 滯留時間 = (實際容量 / 單模射出重) * 週期
+            // 註：這是一個估算值，假設料管內充滿料。
+            
+            var realCap = cap * (den / 1.05);
+            var shotsInBarrel = realCap / shot; // 料管內有幾模料
+            var resTimeSec = shotsInBarrel * cyc;
+            var resTimeMin = resTimeSec / 60;
+
+            // 判斷警示
+            var status = "";
+            if (resTimeMin < 2) status = "<br><span style='color:red;'>⚠️ 時間太短：可能塑化不均</span>";
+            else if (resTimeMin > 10) status = "<br><span style='color:red;'>⚠️ 時間太長：原料可能裂解</span>";
+            else status = "<br><span style='color:green;'>✅ 時間適中 (一般建議 2~5 分)</span>";
+
+            var resBox = document.getElementById("r-res");
+            resBox.style.display = "block";
+            resBox.innerHTML = 
+                '<div style="display:flex; justify-content:space-between;"><span>料管庫存量:</span><strong>' + realCap.toFixed(1) + ' g</strong></div>' +
+                '<hr style="border-top:1px solid #ffeeba; margin:10px 0;">' +
+                '<div style="text-align:center;">' +
+                    '<span style="font-size:14px; color:#666;">預估滯留時間</span><br>' +
+                    '<strong style="font-size:32px;">' + resTimeMin.toFixed(1) + '</strong> <span style="font-size:18px;">分 (min)</span>' +
+                    status +
+                '</div>';
+        });
+    }
+
 });
