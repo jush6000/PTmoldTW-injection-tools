@@ -1,299 +1,90 @@
 document.addEventListener("DOMContentLoaded", function() {
 
-    // ============================================================
-    // 模組 1：鎖模力估算器
-    // ============================================================
-    var clampingID = "clamping-calculator-app";
-    var clampingContainer = document.getElementById(clampingID);
-
-    if (clampingContainer) {
-        console.log("正在載入：鎖模力估算器 (L x W 版)...");
-
-        // --- 1. 定義材料數據 ---
-        var materials = [
-            { name: "PP / PE (聚丙烯/聚乙烯)", pressure: 300 },
-            { name: "PS / ABS (通用塑料)", pressure: 350 },
-            { name: "PA / POM (尼龍/縮醛)", pressure: 600 },
-            { name: "PC / PMMA (聚碳酸酯/壓克力)", pressure: 700 },
-            { name: "PC+GF / PA+GF (加玻纖)", pressure: 800 }
-        ];
-
-        var optionsHtml = materials.map(function(m) {
-            return '<option value="' + m.pressure + '">' + m.name + '</option>';
-        }).join('');
-        
-        // --- 2. 建立介面 (改為長與寬兩個輸入框) ---
-        clampingContainer.innerHTML = 
-            '<div style="background:#fff; padding:25px; border:1px solid #ddd; border-radius:10px; max-width:500px; margin:0 auto; box-shadow:0 4px 10px rgba(0,0,0,0.05);">' +
-                '<h3 style="margin-top:0; color:#333; text-align:center; border-bottom:2px solid #007bff; padding-bottom:10px; margin-bottom:20px;">🛠️ 鎖模力估算器</h3>' +
-                
-                '<div style="display:flex; gap:10px; margin-bottom:15px;">' +
-                    '<div style="flex:1;">' +
-                        '<label style="display:block; font-weight:bold; margin-bottom:5px;">長度 (L)</label>' +
-                        '<input type="number" id="c-len" style="width:100%; padding:10px; box-sizing:border-box; border:1px solid #ccc; border-radius:5px; font-size:16px;" placeholder="cm">' +
-                    '</div>' +
-                    '<div style="flex:1;">' +
-                        '<label style="display:block; font-weight:bold; margin-bottom:5px;">寬度 (W)</label>' +
-                        '<input type="number" id="c-wid" style="width:100%; padding:10px; box-sizing:border-box; border:1px solid #ccc; border-radius:5px; font-size:16px;" placeholder="cm">' +
-                    '</div>' +
-                '</div>' +
-
-                '<div style="margin-bottom:15px;">' +
-                    '<label style="display:block; font-weight:bold; margin-bottom:5px;">2. 塑料材質</label>' +
-                    '<select id="c-mat" style="width:100%; padding:10px; box-sizing:border-box; border:1px solid #ccc; border-radius:5px; font-size:16px; background:white;">' +
-                        optionsHtml +
-                    '</select>' +
-                '</div>' +
-
-                '<div style="margin-bottom:20px;">' +
-                    '<label style="display:block; font-weight:bold; margin-bottom:5px;">3. 安全係數 (建議 1.2)</label>' +
-                    '<input type="number" id="c-safe" value="1.2" step="0.1" style="width:100%; padding:10px; box-sizing:border-box; border:1px solid #ccc; border-radius:5px; font-size:16px;">' +
-                '</div>' +
-
-                '<button id="c-btn" style="width:100%; background:#007bff; color:#fff; padding:12px; border:none; border-radius:5px; cursor:pointer; font-size:18px; font-weight:bold; transition:0.3s;">開始計算</button>' +
-
-                '<div id="c-res" style="margin-top:20px; padding:15px; background:#f1f3f5; color:#d9534f; font-weight:bold; display:none; border-radius:5px; text-align:center; border:1px solid #dee2e6;"></div>' +
-            '</div>';
-
-        // --- 3. 綁定計算邏輯 (自動計算面積) ---
-        document.getElementById("c-btn").addEventListener("click", function() {
-            var len = parseFloat(document.getElementById("c-len").value);
-            var wid = parseFloat(document.getElementById("c-wid").value);
-            var pressure = parseFloat(document.getElementById("c-mat").value);
-            var safe = parseFloat(document.getElementById("c-safe").value);
-
-            // 驗證輸入
-            if (!len || len <= 0 || !wid || wid <= 0) {
-                alert("請輸入正確的長度與寬度！");
-                return;
-            }
-
-            // 自動算出面積
-            var area = len * wid;
-
-            // 公式計算
-            var force = (area * pressure / 1000) * safe;
-            
-            var resBox = document.getElementById("c-res");
-            resBox.style.display = "block";
-            resBox.innerHTML = 
-                '<span style="color:#555; font-size:14px;">投影面積：' + area.toFixed(1) + ' cm²</span><br>' +
-                '<hr style="margin:10px 0; border:0; border-top:1px solid #ddd;">' +
-                '<span style="color:#333; font-size:14px;">建議最小鎖模力：</span><br>' + 
-                '<span style="font-size:28px;">' + force.toFixed(1) + '</span> <span style="font-size:16px;">噸 (Tons)</span>';
-        });
-    }
+    // 輔助函式：檢查必填
+    function check(v, msg) { if(!v) { alert(msg); return false; } return true; }
 
     // ============================================================
-    // 工具 2：冷卻時間估算器 (Cooling Time Estimator)
+    // 工具 1：鎖模力估算器
     // ============================================================
-    var coolingContainer = document.getElementById("cooling-time-app");
-    if (coolingContainer) {
-        console.log("載入冷卻時間計算機...");
-
-        // 定義熱傳導數據 (Effective Diffusivity for simplified calculation)
-        // 這裡採用簡化經驗係數，方便使用者快速估算
-        var coolMaterials = [
-            { name: "PP (聚丙烯)", alpha: 0.096, tm: 230, tw: 40, te: 90 }, // alpha: 熱擴散率, tm:料溫, tw:模溫, te:頂出溫
-            { name: "PE (聚乙烯)", alpha: 0.10, tm: 210, tw: 40, te: 80 },
-            { name: "ABS (通用級)", alpha: 0.086, tm: 230, tw: 60, te: 95 },
-            { name: "PC (聚碳酸酯)", alpha: 0.10, tm: 300, tw: 90, te: 135 },
-            { name: "PA66 (尼龍66)", alpha: 0.095, tm: 280, tw: 80, te: 120 },
-            { name: "POM (塑鋼)", alpha: 0.088, tm: 200, tw: 90, te: 130 }
-        ];
-
-        var matOptions = coolMaterials.map(function(m, index){
-            return '<option value="'+index+'">'+m.name+'</option>';
-        }).join('');
-
-        coolingContainer.innerHTML = 
-            '<div style="background:#fff; padding:25px; border:1px solid #ddd; border-radius:10px; max-width:500px; margin:0 auto; box-shadow:0 4px 10px rgba(0,0,0,0.05);">' +
-                '<h3 style="margin-top:0; color:#28a745; text-align:center; border-bottom:2px solid #28a745; padding-bottom:10px; margin-bottom:20px;">⏱️ 冷卻時間估算器</h3>' +
-                
-                '<div style="margin-bottom:15px;">' +
-                    '<label style="display:block; font-weight:bold; margin-bottom:5px;">1. 產品肉厚 (Max Wall Thickness)</label>' +
-                    '<div style="display:flex; align-items:center;">' +
-                        '<input type="number" id="t-thick" style="width:100%; padding:10px; box-sizing:border-box; border:1px solid #ccc; border-radius:5px; font-size:16px;" placeholder="單位：mm" step="0.1">' +
-                        '<span style="margin-left:10px; font-weight:bold;">mm</span>' +
-                    '</div>' +
-                    '<div style="font-size:12px; color:#888; margin-top:5px;">*請輸入產品最厚處的尺寸</div>' +
-                '</div>' +
-
-                '<div style="margin-bottom:20px;">' +
-                    '<label style="display:block; font-weight:bold; margin-bottom:5px;">2. 塑料材質</label>' +
-                    '<select id="t-mat" style="width:100%; padding:10px; box-sizing:border-box; border:1px solid #ccc; border-radius:5px; font-size:16px; background:white;">'+matOptions+'</select>' +
-                '</div>' +
-
-                '<button id="t-btn" style="width:100%; background:#28a745; color:#fff; padding:12px; border:none; border-radius:5px; cursor:pointer; font-size:18px; font-weight:bold; transition:0.3s;">計算時間</button>' +
-
-                '<div id="t-res" style="margin-top:20px; padding:15px; background:#e8f5e9; color:#2e7d32; font-weight:bold; display:none; border-radius:5px; text-align:center; border:1px solid #c8e6c9;"></div>' +
-            '</div>';
-
-        document.getElementById("t-btn").addEventListener("click", function() {
-            var h = parseFloat(document.getElementById("t-thick").value); // mm
-            var matIndex = document.getElementById("t-mat").value;
-            var mat = coolMaterials[matIndex];
-
-            if (!h || h <= 0) { alert("請輸入正確的肉厚 (mm)"); return; }
-
-            // === 核心公式 (Standard Cooling Time Equation) ===
-            // t = (h^2 / (pi^2 * alpha)) * ln( (4/pi) * (Tm - Tw) / (Te - Tw) )
-            
-            var alpha = mat.alpha; // 熱擴散率
-            var Tm = mat.tm; // 料溫
-            var Tw = mat.tw; // 模溫
-            var Te = mat.te; // 頂出溫
-            
-            var pi = Math.PI;
-            var term1 = (h * h) / (pi * pi * alpha);
-            var term2 = Math.log( (4/pi) * (Tm - Tw) / (Te - Tw) );
-            
-            var time = term1 * term2;
-
-            var resBox = document.getElementById("t-res");
-            resBox.style.display = "block";
-            resBox.innerHTML = 
-                '<span style="color:#555; font-size:14px;">參考材質：'+mat.name+'</span><br>' +
-                '<hr style="margin:10px 0; border:0; border-top:1px solid #a5d6a7;">' +
-                '<span style="color:#2e7d32; font-size:14px;">理論冷卻時間：</span><br>' + 
-                '<span style="font-size:32px;">' + time.toFixed(1) + '</span> <span style="font-size:18px;">秒 (sec)</span>';
-        });
-    }
-    // ============================================================
-    // 工具 3：單位換算器 (Unit Converter)
-    // ID: unit-converter-app
-    // ============================================================
-    var unitContainer = document.getElementById("unit-converter-app");
-    if (unitContainer) {
-        console.log("載入工具 3：單位換算器...");
-        
-        unitContainer.innerHTML = 
-            '<div style="background:#fff; padding:25px; border:1px solid #ddd; border-radius:10px; max-width:500px; margin:0 auto; box-shadow:0 4px 10px rgba(0,0,0,0.05);">' +
-                '<h3 style="margin-top:0; color:#6f42c1; text-align:center; border-bottom:2px solid #6f42c1; padding-bottom:10px; margin-bottom:20px;">🔄 射出常用單位換算</h3>' +
-                '<div style="margin-bottom:20px; background:#f8f9fa; padding:15px; border-radius:8px;">' +
-                    '<label style="display:block; font-weight:bold; margin-bottom:10px; color:#333;">1. 壓力 (Pressure)</label>' +
-                    '<div style="display:flex; gap:10px; align-items:center;"><input type="number" id="u-mpa" placeholder="MPa" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"><span style="font-weight:bold;">⇄</span><input type="number" id="u-kg" placeholder="kg/cm²" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></div>' +
-                '</div>' +
-                '<div style="margin-bottom:20px; background:#f8f9fa; padding:15px; border-radius:8px;">' +
-                    '<label style="display:block; font-weight:bold; margin-bottom:10px; color:#333;">2. 長度 (Length)</label>' +
-                    '<div style="display:flex; gap:10px; align-items:center;"><input type="number" id="u-mm" placeholder="mm" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"><span style="font-weight:bold;">⇄</span><input type="number" id="u-inch" placeholder="inch" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></div>' +
-                '</div>' +
-                 '<div style="background:#f8f9fa; padding:15px; border-radius:8px;">' +
-                    '<label style="display:block; font-weight:bold; margin-bottom:10px; color:#333;">3. 鎖模力 (Force)</label>' +
-                    '<div style="display:flex; gap:10px; align-items:center;"><input type="number" id="u-ton" placeholder="Ton (噸)" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"><span style="font-weight:bold;">⇄</span><input type="number" id="u-kn" placeholder="kN" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></div>' +
-                '</div>' +
-            '</div>';
-
-        // 綁定計算
-        var mpa = document.getElementById("u-mpa"), kg = document.getElementById("u-kg");
-        mpa.addEventListener("input", function(){ kg.value = (this.value * 10.197).toFixed(1); });
-        kg.addEventListener("input", function(){ mpa.value = (this.value / 10.197).toFixed(1); });
-
-        var mm = document.getElementById("u-mm"), inch = document.getElementById("u-inch");
-        mm.addEventListener("input", function(){ inch.value = (this.value / 25.4).toFixed(3); });
-        inch.addEventListener("input", function(){ mm.value = (this.value * 25.4).toFixed(2); });
-
-        var ton = document.getElementById("u-ton"), kn = document.getElementById("u-kn");
-        ton.addEventListener("input", function(){ kn.value = (this.value * 9.807).toFixed(1); });
-        kn.addEventListener("input", function(){ ton.value = (this.value / 9.807).toFixed(1); });
-    }
-    // ============================================================
-    // 工具 4：產能試算機 (Production Capacity)
-    // ID: production-capacity-app
-    // ============================================================
-    var prodContainer = document.getElementById("production-capacity-app");
-    if (prodContainer) {
-        console.log("載入工具 4：產能試算...");
-        
-        prodContainer.innerHTML = 
-            '<div style="background:#fff; padding:25px; border:1px solid #ddd; border-radius:10px; max-width:500px; margin:0 auto; box-shadow:0 4px 10px rgba(0,0,0,0.05);">' +
-                '<h3 style="margin-top:0; color:#dc3545; text-align:center; border-bottom:2px solid #dc3545; padding-bottom:10px; margin-bottom:20px;">🏭 射出產能試算機</h3>' +
-                
-                '<div style="display:flex; gap:15px; margin-bottom:15px;">' +
-                    '<div style="flex:1;">' +
-                        '<label style="display:block; font-weight:bold; margin-bottom:5px;">成型週期 (秒)</label>' +
-                        '<input type="number" id="p-cycle" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;" placeholder="Cycle Time">' +
-                    '</div>' +
-                    '<div style="flex:1;">' +
-                        '<label style="display:block; font-weight:bold; margin-bottom:5px;">模穴數 (穴)</label>' +
-                        '<input type="number" id="p-cavity" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;" placeholder="Cavities">' +
-                    '</div>' +
-                '</div>' +
-
-                '<div style="margin-bottom:15px;">' +
-                    '<label style="display:block; font-weight:bold; margin-bottom:5px;">工作時數 (小時/天)</label>' +
-                    '<select id="p-hours" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; background:white;">' +
-                        '<option value="8">8 小時 (單班)</option>' +
-                        '<option value="12">12 小時 (1.5班)</option>' +
-                        '<option value="24">24 小時 (全天)</option>' +
-                        '<option value="custom">自訂...</option>' +
-                    '</select>' +
-                    '<input type="number" id="p-hours-custom" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; margin-top:5px; display:none;" placeholder="輸入時數">' +
-                '</div>' +
-
-                '<div style="margin-bottom:20px;">' +
-                    '<label style="display:block; font-weight:bold; margin-bottom:5px;">稼動率 (%)</label>' +
-                    '<input type="number" id="p-efficiency" value="90" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;">' +
-                    '<div style="font-size:12px; color:#888;">*扣除換模、故障等停機時間 (建議 85-95%)</div>' +
-                '</div>' +
-
-                '<button id="p-btn" style="width:100%; background:#dc3545; color:#fff; padding:12px; border:none; border-radius:5px; cursor:pointer; font-weight:bold; font-size:16px;">計算產量</button>' +
-
-                '<div id="p-res" style="margin-top:20px; padding:15px; background:#f8d7da; color:#721c24; border-radius:5px; display:none; border:1px solid #f5c6cb;"></div>' +
-            '</div>';
-
-        // 處理自訂時數顯示
-        document.getElementById("p-hours").addEventListener("change", function() {
-            var customInput = document.getElementById("p-hours-custom");
-            if (this.value === "custom") {
-                customInput.style.display = "block";
-            } else {
-                customInput.style.display = "none";
+    var cCon = document.getElementById("clamping-calculator-app");
+    if (cCon) {
+        console.log("載入工具 1...");
+        var mats = [{n:"PP / PE",p:300},{n:"ABS / PS",p:350},{n:"PA / POM",p:600},{n:"PC / PMMA",p:700},{n:"PC+GF",p:800}];
+        var opt = mats.map(function(m){return '<option value="'+m.p+'">'+m.n+'</option>'}).join('');
+        cCon.innerHTML = '<div style="background:#fff;padding:25px;border:1px solid #ddd;border-radius:10px;max-width:500px;margin:0 auto;box-shadow:0 4px 10px rgba(0,0,0,0.05);"><h3 style="margin-top:0;color:#333;text-align:center;border-bottom:2px solid #007bff;padding-bottom:10px;">🛠️ 鎖模力估算器</h3><div style="display:flex;gap:10px;margin:15px 0;"><input type="number" id="c-l" placeholder="長 cm" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:5px;"><input type="number" id="c-w" placeholder="寬 cm" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:5px;"></div><select id="c-m" style="width:100%;padding:10px;margin-bottom:15px;border:1px solid #ddd;border-radius:5px;">'+opt+'</select><input type="number" id="c-s" value="1.2" placeholder="安全係數" style="width:100%;padding:10px;margin-bottom:15px;border:1px solid #ddd;border-radius:5px;"><button id="c-b" style="width:100%;padding:12px;background:#007bff;color:#fff;border:none;border-radius:5px;font-weight:bold;cursor:pointer;">計算</button><div id="c-r" style="margin-top:20px;padding:15px;background:#f8f9fa;display:none;text-align:center;color:#d9534f;font-weight:bold;border-radius:5px;"></div></div>';
+        document.getElementById("c-b").addEventListener("click",function(){
+            var l=parseFloat(document.getElementById("c-l").value), w=parseFloat(document.getElementById("c-w").value), p=parseFloat(document.getElementById("c-m").value), s=parseFloat(document.getElementById("c-s").value);
+            if(check(l&&w,"請輸入長寬")) {
+                document.getElementById("c-r").style.display="block";
+                document.getElementById("c-r").innerHTML='建議鎖模力：<span style="font-size:24px;">'+((l*w*p/1000)*s).toFixed(1)+'</span> 噸';
             }
         });
+    }
 
-        // 計算邏輯
-        document.getElementById("p-btn").addEventListener("click", function() {
-            var cycle = parseFloat(document.getElementById("p-cycle").value);
-            var cavity = parseFloat(document.getElementById("p-cavity").value);
-            var eff = parseFloat(document.getElementById("p-efficiency").value) / 100;
-            
-            var hours = document.getElementById("p-hours").value;
-            if (hours === "custom") {
-                hours = parseFloat(document.getElementById("p-hours-custom").value);
-            } else {
-                hours = parseFloat(hours);
+    // ============================================================
+    // 工具 2：冷卻時間估算器
+    // ============================================================
+    var coolCon = document.getElementById("cooling-time-app");
+    if (coolCon) {
+        console.log("載入工具 2...");
+        var cMats = [{n:"PP",a:0.096,tm:230,tw:40,te:90},{n:"ABS",a:0.086,tm:230,tw:60,te:95},{n:"PC",a:0.1,tm:300,tw:90,te:135}];
+        var cOpt = cMats.map(function(m,i){return '<option value="'+i+'">'+m.n+'</option>'}).join('');
+        coolCon.innerHTML = '<div style="background:#fff;padding:25px;border:1px solid #ddd;border-radius:10px;max-width:500px;margin:0 auto;box-shadow:0 4px 10px rgba(0,0,0,0.05);"><h3 style="margin-top:0;color:#28a745;text-align:center;border-bottom:2px solid #28a745;padding-bottom:10px;">⏱️ 冷卻時間估算器</h3><input type="number" id="t-h" placeholder="肉厚 mm" style="width:100%;padding:10px;margin:15px 0;border:1px solid #ddd;border-radius:5px;"><select id="t-m" style="width:100%;padding:10px;margin-bottom:15px;border:1px solid #ddd;border-radius:5px;">'+cOpt+'</select><button id="t-b" style="width:100%;padding:12px;background:#28a745;color:#fff;border:none;border-radius:5px;font-weight:bold;cursor:pointer;">計算</button><div id="t-r" style="margin-top:20px;padding:15px;background:#e8f5e9;display:none;text-align:center;color:#2e7d32;font-weight:bold;border-radius:5px;"></div></div>';
+        document.getElementById("t-b").addEventListener("click",function(){
+            var h=parseFloat(document.getElementById("t-h").value), m=cMats[document.getElementById("t-m").value];
+            if(check(h,"請輸入肉厚")) {
+                var t=(h*h/(Math.PI*Math.PI*m.a))*Math.log((4/Math.PI)*(m.tm-m.tw)/(m.te-m.tw));
+                document.getElementById("t-r").style.display="block";
+                document.getElementById("t-r").innerHTML='理論時間：<span style="font-size:24px;">'+t.toFixed(1)+'</span> 秒';
             }
-
-            if (!cycle || !cavity || !hours) return alert("請輸入完整數據");
-
-            // 公式：(3600秒 / 週期) * 穴數 * 時數 * 稼動率
-            var hourlyOutput = (3600 / cycle) * cavity * eff;
-            var dailyOutput = hourlyOutput * hours;
-
-            var resBox = document.getElementById("p-res");
-            resBox.style.display = "block";
-            resBox.innerHTML = 
-                '<div style="display:flex; justify-content:space-between; margin-bottom:5px;">' +
-                    '<span>每小時產量 (PCS):</span>' +
-                    '<strong style="font-size:18px;">' + Math.floor(hourlyOutput).toLocaleString() + '</strong>' +
-                '</div>' +
-                '<hr style="border-top:1px solid #f5c6cb; margin:10px 0;">' +
-                '<div style="display:flex; justify-content:space-between; align-items:center;">' +
-                    '<span>每日產量 (PCS):</span>' +
-                    '<strong style="font-size:28px;">' + Math.floor(dailyOutput).toLocaleString() + '</strong>' +
-                '</div>';
         });
     }
+
+    // ============================================================
+    // 工具 3：單位換算器
+    // ============================================================
+    var uCon = document.getElementById("unit-converter-app");
+    if (uCon) {
+        console.log("載入工具 3...");
+        uCon.innerHTML = '<div style="background:#fff;padding:25px;border:1px solid #ddd;border-radius:10px;max-width:500px;margin:0 auto;box-shadow:0 4px 10px rgba(0,0,0,0.05);"><h3 style="margin-top:0;color:#6f42c1;text-align:center;border-bottom:2px solid #6f42c1;padding-bottom:10px;">🔄 單位換算器</h3><div style="margin-bottom:15px;background:#f8f9fa;padding:10px;border-radius:5px;"><label>壓力 (MPa ⇄ kg)</label><div style="display:flex;gap:5px;"><input id="u-mpa" placeholder="MPa" style="width:50%"><input id="u-kg" placeholder="kg/cm²" style="width:50%"></div></div><div style="margin-bottom:15px;background:#f8f9fa;padding:10px;border-radius:5px;"><label>長度 (mm ⇄ inch)</label><div style="display:flex;gap:5px;"><input id="u-mm" placeholder="mm" style="width:50%"><input id="u-inch" placeholder="inch" style="width:50%"></div></div><div style="background:#f8f9fa;padding:10px;border-radius:5px;"><label>鎖模力 (Ton ⇄ kN)</label><div style="display:flex;gap:5px;"><input id="u-ton" placeholder="Ton" style="width:50%"><input id="u-kn" placeholder="kN" style="width:50%"></div></div></div>';
+        var mp=document.getElementById("u-mpa"),kg=document.getElementById("u-kg"); mp.addEventListener("input",function(){kg.value=(this.value*10.197).toFixed(1)}); kg.addEventListener("input",function(){mp.value=(this.value/10.197).toFixed(1)});
+        var mm=document.getElementById("u-mm"),inc=document.getElementById("u-inch"); mm.addEventListener("input",function(){inc.value=(this.value/25.4).toFixed(3)}); inc.addEventListener("input",function(){mm.value=(this.value*25.4).toFixed(2)});
+        var tn=document.getElementById("u-ton"),kn=document.getElementById("u-kn"); tn.addEventListener("input",function(){kn.value=(this.value*9.807).toFixed(1)}); kn.addEventListener("input",function(){tn.value=(this.value/9.807).toFixed(1)});
+    }
+
+    // ============================================================
+    // 工具 4：產能試算機
+    // ============================================================
+    var pCon = document.getElementById("production-capacity-app");
+    if (pCon) {
+        console.log("載入工具 4...");
+        pCon.innerHTML = '<div style="background:#fff;padding:25px;border:1px solid #ddd;border-radius:10px;max-width:500px;margin:0 auto;box-shadow:0 4px 10px rgba(0,0,0,0.05);"><h3 style="margin-top:0;color:#dc3545;text-align:center;border-bottom:2px solid #dc3545;padding-bottom:10px;">🏭 產能試算機</h3><div style="display:flex;gap:10px;margin:15px 0;"><input id="p-c" type="number" placeholder="週期 (秒)" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:5px;"><input id="p-n" type="number" placeholder="穴數" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:5px;"></div><div style="display:flex;gap:10px;margin-bottom:15px;"><select id="p-h" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:5px;"><option value="8">8H</option><option value="12">12H</option><option value="24">24H</option><option value="custom">自訂...</option></select><input type="number" id="p-h-custom" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:5px;display:none;" placeholder="輸入時數"></div><div style="margin-bottom:20px;"><label>稼動率 %</label><input type="number" id="p-e" value="90" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:5px;"></div><button id="p-b" style="width:100%;padding:12px;background:#dc3545;color:#fff;border:none;border-radius:5px;font-weight:bold;cursor:pointer;">計算</button><div id="p-r" style="margin-top:20px;padding:15px;background:#f8d7da;display:none;border-radius:5px;color:#721c24;"></div></div>';
+        
+        document.getElementById("p-h").addEventListener("change", function() {
+            document.getElementById("p-h-custom").style.display = (this.value === "custom") ? "block" : "none";
+        });
+
+        document.getElementById("p-b").addEventListener("click",function(){
+            var c=parseFloat(document.getElementById("p-c").value), n=parseFloat(document.getElementById("p-n").value), e=parseFloat(document.getElementById("p-e").value)/100;
+            var hVal = document.getElementById("p-h").value;
+            var h = (hVal === "custom") ? parseFloat(document.getElementById("p-h-custom").value) : parseFloat(hVal);
+            
+            if(check(c&&n&&h,"請輸入完整數據")){
+                var hourly = (3600/c)*n*e;
+                var daily = hourly*h;
+                document.getElementById("p-r").style.display="block";
+                document.getElementById("p-r").innerHTML='每小時：'+Math.floor(hourly).toLocaleString()+'<br>日產量：<strong style="font-size:24px;">'+Math.floor(daily).toLocaleString()+'</strong> PCS';
+            }
+        });
+    }
+
     // ============================================================
     // 工具 5：成型計量計算機 (Shot Size Calculator)
-    // ID: material-metering-app
     // ============================================================
     var meteringContainer = document.getElementById("material-metering-app");
     if (meteringContainer) {
-        console.log("載入工具 5：計量計算機...");
+        console.log("載入工具 5...");
 
-        // 1. 移植 Python 的比重表
         var matData = {
             "ABS": 1.05, "ABS防火": 1.17, "ABS+30%GF": 1.28, "AS": 1.06,
             "HDPE": 0.96, "LDPE": 0.92, "PA6": 1.13, "PA6+15%GF": 1.23,
@@ -310,12 +101,9 @@ document.addEventListener("DOMContentLoaded", function() {
             matOptions += '<option value="' + matData[key] + '">' + key + '</option>';
         }
 
-        // 2. 建立 UI
         meteringContainer.innerHTML = 
             '<div style="background:#fff; padding:25px; border:1px solid #ddd; border-radius:10px; max-width:500px; margin:0 auto; box-shadow:0 4px 10px rgba(0,0,0,0.05);">' +
                 '<h3 style="margin-top:0; color:#0d6efd; text-align:center; border-bottom:2px solid #0d6efd; padding-bottom:10px; margin-bottom:20px;">📏 成型計量計算機</h3>' +
-                
-                // 螺桿與材質
                 '<div style="background:#f8f9fa; padding:15px; border-radius:5px; margin-bottom:15px;">' +
                     '<label style="font-weight:bold; display:block; margin-bottom:5px;">1. 機台與材質</label>' +
                     '<div style="display:flex; gap:10px; margin-bottom:10px;">' +
@@ -324,8 +112,6 @@ document.addEventListener("DOMContentLoaded", function() {
                     '</div>' +
                     '<input type="number" id="m-density" placeholder="比重 (自動帶入)" step="0.01" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; background:#e9ecef;">' +
                 '</div>' +
-
-                // 產品數據
                 '<div style="background:#f8f9fa; padding:15px; border-radius:5px; margin-bottom:15px;">' +
                     '<label style="font-weight:bold; display:block; margin-bottom:5px;">2. 產品數據</label>' +
                     '<div style="display:flex; gap:10px; margin-bottom:10px;">' +
@@ -337,86 +123,53 @@ document.addEventListener("DOMContentLoaded", function() {
                         '<div style="flex:1;"><input type="number" id="m-cushion" placeholder="預留 (mm)" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></div>' +
                     '</div>' +
                 '</div>' +
-
                 '<button id="m-btn" style="width:100%; background:#0d6efd; color:#fff; padding:12px; border:none; border-radius:5px; cursor:pointer; font-weight:bold; font-size:16px;">計算行程</button>' +
-
                 '<div id="m-res" style="margin-top:20px; padding:15px; background:#e7f1ff; color:#084298; border-radius:5px; display:none; border:1px solid #b6d4fe;"></div>' +
             '</div>';
 
-        // 事件綁定：材質改變時更新比重
-        var matSelect = document.getElementById("m-mat");
-        var denInput = document.getElementById("m-density");
-        matSelect.addEventListener("change", function() {
-            denInput.value = this.value;
-        });
-
-        // 計算邏輯
+        document.getElementById("m-mat").addEventListener("change", function() { document.getElementById("m-density").value = this.value; });
         document.getElementById("m-btn").addEventListener("click", function() {
-            var screw = parseFloat(document.getElementById("m-screw").value);
-            var density = parseFloat(document.getElementById("m-density").value);
-            var weight = parseFloat(document.getElementById("m-weight").value);
-            var cav = parseFloat(document.getElementById("m-cav").value);
-            
-            // 如果沒填，流道預設算 0，預留預設算 5 (這是為了計算不會報錯，但介面上是空的)
+            var screw = parseFloat(document.getElementById("m-screw").value), den = parseFloat(document.getElementById("m-density").value), weight = parseFloat(document.getElementById("m-weight").value), cav = parseFloat(document.getElementById("m-cav").value);
             var runner = parseFloat(document.getElementById("m-runner").value) || 0;
             var cushion = parseFloat(document.getElementById("m-cushion").value) || 5;
 
-            // 必填檢查
-            if (!screw || !density || !weight || !cav) return alert("請輸入完整數據 (螺桿、材質、成品重、穴數)");
+            if (check(screw&&den&&weight&&cav,"請輸入完整數據")) {
+                var r = (screw/2)/10;
+                var volPerMM = Math.PI*r*r*0.1;
+                var totalWeight = (weight*cav)+runner;
+                var totalStroke = (totalWeight/den)/volPerMM;
+                var storagePos = totalStroke+cushion;
+                var firstStage = storagePos - ((runner/den)/volPerMM);
+                var finalStage = (totalStroke*0.05)+cushion;
 
-            // 1. 計算理論 1mm 體積 (cm^3) = PI * r^2 * 0.1
-            // r = screw / 2 / 10 (轉cm)
-            var r = (screw / 2) / 10;
-            var volPerMM = Math.PI * r * r * 0.1;
-            
-            // 2. 總重量
-            var totalWeight = (weight * cav) + runner;
-
-            // 3. 換算行程 (總重 / 比重 / 1mm體積)
-            var totalVol = totalWeight / density;
-            var totalStroke = totalVol / volPerMM;
-
-            // 4. 儲料位置 (總行程 + 預留)
-            var storagePos = totalStroke + cushion;
-
-            // 5. 第一段射出
-            var runnerVol = runner / density;
-            var runnerStroke = runnerVol / volPerMM;
-            var firstStage = storagePos - runnerStroke;
-
-            // 6. 殘量監控
-            var finalStage = (totalStroke * 0.05) + cushion;
-
-            var resBox = document.getElementById("m-res");
-            resBox.style.display = "block";
-            resBox.innerHTML = 
-                '<div style="text-align:center; margin-bottom:10px; font-weight:bold;">總射出重量：' + totalWeight.toFixed(2) + ' g</div>' +
-                '<hr style="border-top:1px solid #b6d4fe; margin:10px 0;">' +
-                '<div style="display:flex; justify-content:space-between;"><span>建議儲料位置:</span><strong>' + storagePos.toFixed(1) + ' mm</strong></div>' +
-                '<div style="display:flex; justify-content:space-between; color:#666; font-size:14px;"><span>(扣除流道後):</span><span>' + firstStage.toFixed(1) + ' mm</span></div>' +
-                '<div style="display:flex; justify-content:space-between; margin-top:5px;"><span>殘量監控點:</span><strong>' + finalStage.toFixed(1) + ' mm</strong></div>';
+                document.getElementById("m-res").style.display = "block";
+                document.getElementById("m-res").innerHTML = 
+                    '<div style="text-align:center; margin-bottom:10px; font-weight:bold;">總射出重量：' + totalWeight.toFixed(2) + ' g</div>' +
+                    '<hr style="border-top:1px solid #b6d4fe; margin:10px 0;">' +
+                    '<div style="display:flex; justify-content:space-between;"><span>建議儲料位置:</span><strong>' + storagePos.toFixed(1) + ' mm</strong></div>' +
+                    '<div style="display:flex; justify-content:space-between; color:#666; font-size:14px;"><span>(扣除流道後):</span><span>' + firstStage.toFixed(1) + ' mm</span></div>' +
+                    '<div style="display:flex; justify-content:space-between; margin-top:5px;"><span>殘量監控點:</span><strong>' + finalStage.toFixed(1) + ' mm</strong></div>';
+            }
         });
     }
+
     // ============================================================
     // 工具 6：滯留時間計算機 (Residence Time)
-    // ID: residence-time-app
     // ============================================================
     var resCon = document.getElementById("residence-time-app");
     if (resCon) {
-        console.log("載入工具 6：滯留時間...");
+        console.log("載入工具 6...");
         var rMats = {"PP":0.9,"ABS":1.05,"PC":1.2,"PA66":1.13,"POM":1.41,"PBT":1.31,"PMMA":1.19};
         var rOpt = '<option value="" disabled selected>選擇材質</option>'; for(var k in rMats) rOpt+='<option value="'+rMats[k]+'">'+k+'</option>';
 
         resCon.innerHTML = 
             '<div style="background:#fff; padding:25px; border:1px solid #ddd; border-radius:10px; max-width:500px; margin:0 auto; box-shadow:0 4px 10px rgba(0,0,0,0.05);">' +
                 '<h3 style="margin-top:0; color:#fd7e14; text-align:center; border-bottom:2px solid #fd7e14; padding-bottom:10px; margin-bottom:20px;">🔥 滯留時間計算機</h3>' +
-                
                 '<div style="margin-bottom:15px;">' +
                     '<label style="font-weight:bold; display:block; margin-bottom:5px;">1. 機台規格</label>' +
                     '<input type="number" id="r-cap" placeholder="機台最大射出量 (PS克數)" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;">' +
                     '<div style="font-size:12px; color:#888;">*請查閱機台銘牌 (Max Shot Weight)</div>' +
                 '</div>' +
-
                 '<div style="margin-bottom:15px;">' +
                     '<label style="font-weight:bold; display:block; margin-bottom:5px;">2. 生產數據</label>' +
                     '<div style="display:flex; gap:10px;">' +
@@ -424,51 +177,30 @@ document.addEventListener("DOMContentLoaded", function() {
                         '<input type="number" id="r-cyc" placeholder="週期 (秒)" style="flex:1; padding:10px; border:1px solid #ccc; border-radius:5px;">' +
                     '</div>' +
                 '</div>' +
-
                 '<div style="margin-bottom:20px;">' +
                     '<label style="font-weight:bold; display:block; margin-bottom:5px;">3. 使用材質</label>' +
                     '<select id="r-mat" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;">' + rOpt + '</select>' +
                 '</div>' +
-
                 '<button id="r-btn" style="width:100%; background:#fd7e14; color:#fff; padding:12px; border:none; border-radius:5px; cursor:pointer; font-weight:bold; font-size:16px;">計算時間</button>' +
-
                 '<div id="r-res" style="margin-top:20px; padding:15px; background:#fff3cd; color:#856404; border-radius:5px; display:none; border:1px solid #ffeeba;"></div>' +
             '</div>';
 
         document.getElementById("r-btn").addEventListener("click", function() {
-            var cap = parseFloat(document.getElementById("r-cap").value);
-            var shot = parseFloat(document.getElementById("r-shot").value);
-            var cyc = parseFloat(document.getElementById("r-cyc").value);
-            var den = parseFloat(document.getElementById("r-mat").value);
-
-            if (!cap || !shot || !cyc || !den) return alert("請輸入完整數據");
-
-            // 核心公式：
-            // 1. 機台實際容量 (修正比重) = 銘牌容量(PS) * (材料比重 / 1.05)
-            // 2. 滯留時間 = (實際容量 / 單模射出重) * 週期
-            // 註：這是一個估算值，假設料管內充滿料。
-            
-            var realCap = cap * (den / 1.05);
-            var shotsInBarrel = realCap / shot; // 料管內有幾模料
-            var resTimeSec = shotsInBarrel * cyc;
-            var resTimeMin = resTimeSec / 60;
-
-            // 判斷警示
-            var status = "";
-            if (resTimeMin < 2) status = "<br><span style='color:red;'>⚠️ 時間太短：可能塑化不均</span>";
-            else if (resTimeMin > 10) status = "<br><span style='color:red;'>⚠️ 時間太長：原料可能裂解</span>";
-            else status = "<br><span style='color:green;'>✅ 時間適中 (一般建議 2~5 分)</span>";
-
-            var resBox = document.getElementById("r-res");
-            resBox.style.display = "block";
-            resBox.innerHTML = 
-                '<div style="display:flex; justify-content:space-between;"><span>料管庫存量:</span><strong>' + realCap.toFixed(1) + ' g</strong></div>' +
-                '<hr style="border-top:1px solid #ffeeba; margin:10px 0;">' +
-                '<div style="text-align:center;">' +
-                    '<span style="font-size:14px; color:#666;">預估滯留時間</span><br>' +
-                    '<strong style="font-size:32px;">' + resTimeMin.toFixed(1) + '</strong> <span style="font-size:18px;">分 (min)</span>' +
-                    status +
-                '</div>';
+            var cap = parseFloat(document.getElementById("r-cap").value), shot = parseFloat(document.getElementById("r-shot").value), cyc = parseFloat(document.getElementById("r-cyc").value), den = parseFloat(document.getElementById("r-mat").value);
+            if (check(cap&&shot&&cyc&&den,"請輸入完整數據")) {
+                var realCap = cap * (den / 1.05);
+                var resTimeMin = (realCap / shot * cyc) / 60;
+                var status = (resTimeMin < 2) ? "<br><span style='color:red;'>⚠️ 時間太短：可能塑化不均</span>" : (resTimeMin > 10) ? "<br><span style='color:red;'>⚠️ 時間太長：原料可能裂解</span>" : "<br><span style='color:green;'>✅ 時間適中 (一般建議 2~5 分)</span>";
+                
+                document.getElementById("r-res").style.display = "block";
+                document.getElementById("r-res").innerHTML = 
+                    '<div style="display:flex; justify-content:space-between;"><span>料管庫存量:</span><strong>' + realCap.toFixed(1) + ' g</strong></div>' +
+                    '<hr style="border-top:1px solid #ffeeba; margin:10px 0;">' +
+                    '<div style="text-align:center;">' +
+                        '<span style="font-size:14px; color:#666;">預估滯留時間</span><br>' +
+                        '<strong style="font-size:32px;">' + resTimeMin.toFixed(1) + '</strong> <span style="font-size:18px;">分 (min)</span>' + status +
+                    '</div>';
+            }
         });
     }
 
