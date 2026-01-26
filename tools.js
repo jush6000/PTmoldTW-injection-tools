@@ -203,5 +203,82 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
     }
+    // ============================================================
+    // 工具 7：水路雷諾數計算機 (Cooling Efficiency)
+    // ID: reynolds-number-app
+    // ============================================================
+    var reyCon = document.getElementById("reynolds-number-app");
+    if (reyCon) {
+        console.log("載入工具 7：雷諾數計算機...");
+
+        reyCon.innerHTML = 
+            '<div style="background:#fff; padding:25px; border:1px solid #ddd; border-radius:10px; max-width:500px; margin:0 auto; box-shadow:0 4px 10px rgba(0,0,0,0.05);">' +
+                '<h3 style="margin-top:0; color:#00b8d4; text-align:center; border-bottom:2px solid #00b8d4; padding-bottom:10px; margin-bottom:20px;">🌊 水路雷諾數計算機</h3>' +
+                
+                '<div style="margin-bottom:15px; background:#e0f7fa; padding:15px; border-radius:5px;">' +
+                    '<label style="font-weight:bold; display:block; margin-bottom:5px;">1. 水路規格</label>' +
+                    '<div style="display:flex; gap:10px; margin-bottom:10px;">' +
+                        '<input type="number" id="rn-dia" placeholder="水管孔徑 (mm)" style="flex:1; padding:10px; border:1px solid #ccc; border-radius:5px;">' +
+                        '<input type="number" id="rn-flow" placeholder="流量 (L/min)" style="flex:1; padding:10px; border:1px solid #ccc; border-radius:5px;">' +
+                    '</div>' +
+                    '<input type="number" id="rn-temp" value="40" placeholder="水溫 (°C)" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;">' +
+                    '<div style="font-size:12px; color:#666; margin-top:5px;">*水溫會影響黏度，一般模溫機約 40-60°C</div>' +
+                '</div>' +
+
+                '<button id="rn-btn" style="width:100%; background:#00b8d4; color:#fff; padding:12px; border:none; border-radius:5px; cursor:pointer; font-weight:bold; font-size:16px;">計算冷卻效率</button>' +
+
+                '<div id="rn-res" style="margin-top:20px; padding:15px; background:#e0f2f1; color:#00695c; border-radius:5px; display:none; border:1px solid #b2dfdb;"></div>' +
+            '</div>';
+
+        document.getElementById("rn-btn").addEventListener("click", function() {
+            var d_mm = parseFloat(document.getElementById("rn-dia").value);
+            var q_lmin = parseFloat(document.getElementById("rn-flow").value);
+            var temp = parseFloat(document.getElementById("rn-temp").value);
+
+            if (check(d_mm && q_lmin && temp, "請輸入完整數據")) {
+                // 1. 水的運動黏度估算 (Kinematic Viscosity)
+                // 簡化公式：40度時約 0.658 cSt (mm2/s)
+                // 估算公式 v = 1.78 / (1 + 0.0337*T + 0.000221*T^2)
+                var viscosity = 1.78 / (1 + 0.0337 * temp + 0.000221 * temp * temp); // unit: mm2/s (cSt)
+
+                // 2. 流速 (Velocity) m/s
+                // V = Q / A
+                // A (mm2) = PI * (d/2)^2
+                var area_mm2 = Math.PI * Math.pow((d_mm / 2), 2);
+                var q_mm3s = (q_lmin * 1000 * 1000) / 60; // L/min -> mm3/s
+                var velocity_mm_s = q_mm3s / area_mm2;
+                var velocity_m_s = velocity_mm_s / 1000;
+
+                // 3. 雷諾數 (Reynolds Number)
+                // Re = (Velocity * Diameter) / Viscosity
+                // 單位要一致：(mm/s * mm) / (mm2/s) -> 無因次
+                var re = (velocity_mm_s * d_mm) / viscosity;
+
+                // 4. 判斷狀態
+                var state = "";
+                var color = "";
+                if (re < 2300) {
+                    state = "層流 (Laminar) - ❌ 冷卻差";
+                    color = "#d32f2f"; // Red
+                } else if (re < 4000) {
+                    state = "過渡流 (Transition) - ⚠️ 普通";
+                    color = "#fbc02d"; // Yellow
+                } else {
+                    state = "紊流 (Turbulent) - ✅ 效率最佳";
+                    color = "#388e3c"; // Green
+                }
+
+                document.getElementById("rn-res").style.display = "block";
+                document.getElementById("rn-res").innerHTML = 
+                    '<div style="text-align:center;">' +
+                        '<div style="font-size:14px; color:#555;">流速: ' + velocity_m_s.toFixed(2) + ' m/s</div>' +
+                        '<hr style="border-top:1px solid #b2dfdb; margin:10px 0;">' +
+                        '<span style="font-size:14px; color:#666;">雷諾數 (Re)</span><br>' +
+                        '<strong style="font-size:32px; color:' + color + ';">' + Math.floor(re).toLocaleString() + '</strong>' +
+                        '<div style="font-size:18px; font-weight:bold; color:' + color + '; margin-top:5px;">' + state + '</div>' +
+                    '</div>';
+            }
+        });
+    }
 
 });
