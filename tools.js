@@ -218,8 +218,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 '<div style="margin-bottom:15px; background:#e0f7fa; padding:15px; border-radius:5px;">' +
                     '<label style="font-weight:bold; display:block; margin-bottom:5px;">1. 水路規格</label>' +
                     '<div style="display:flex; gap:10px; margin-bottom:10px;">' +
-                        '<input type="number" id="rn-dia" placeholder="水管孔徑 (mm)" style="flex:1; padding:10px; border:1px solid #ccc; border-radius:5px;">' +
-                        '<input type="number" id="rn-flow" placeholder="流量 (L/min)" style="flex:1; padding:10px; border:1px solid #ccc; border-radius:5px;">' +
+                        '<input type="number" id="rn-dia" placeholder="水管孔徑 (mm)" style="flex:1; min-width:0; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">' +
+                        '<input type="number" id="rn-flow" placeholder="流量 (L/min)" style="flex:1; min-width:0; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">' +
                     '</div>' +
                     '<input type="number" id="rn-temp" value="40" placeholder="水溫 (°C)" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;">' +
                     '<div style="font-size:12px; color:#666; margin-top:5px;">*水溫會影響黏度，一般模溫機約 40-60°C</div>' +
