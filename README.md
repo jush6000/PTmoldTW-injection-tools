@@ -80,7 +80,18 @@
 <div id="residence-time-app"></div>
 
 ```
+#### 7. 水路雷諾數計算機
 
+```html
+<div id="rreynolds-number-app"></div>
+
+```
+#### 8. 充填時間與速度計算機
+
+```html
+<div id="filling-speed-app"></div>
+
+```
 ---
 
 ## ⚠️ 注意事項 (Notes)
