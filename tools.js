@@ -280,5 +280,60 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
     }
+    // ============================================================
+    // 工具 8：充填時間與速度計算機 (Filling Speed)
+    // ID: filling-speed-app
+    // ============================================================
+    var fillCon = document.getElementById("filling-speed-app");
+    if (fillCon) {
+        fillCon.innerHTML = 
+            '<div style="background:#fff; padding:25px; border:1px solid #ddd; border-radius:10px; max-width:500px; margin:0 auto; box-shadow:0 4px 10px rgba(0,0,0,0.05);">' +
+                '<h3 style="margin-top:0; color:#6610f2; text-align:center; border-bottom:2px solid #6610f2; padding-bottom:10px; margin-bottom:20px;">🚀 充填速度計算機</h3>' +
+                '<div style="margin-bottom:15px; background:#f3e5f5; padding:15px; border-radius:5px;">' +
+                    '<label style="font-weight:bold; display:block; margin-bottom:5px;">1. 螺桿與行程</label>' +
+                    '<div style="display:flex; gap:10px; margin-bottom:10px;">' +
+                        '<input type="number" id="fs-screw" placeholder="螺桿直徑 (mm)" style="flex:1; padding:10px; border:1px solid #ccc; border-radius:5px;">' +
+                        '<input type="number" id="fs-stroke" placeholder="射出行程 (mm)" style="flex:1; padding:10px; border:1px solid #ccc; border-radius:5px;">' +
+                    '</div>' +
+                    '<div style="font-size:12px; color:#666;">*行程請參考「計量計算機」算出的數值</div>' +
+                '</div>' +
+                '<div style="margin-bottom:15px; background:#f3e5f5; padding:15px; border-radius:5px;">' +
+                    '<label style="font-weight:bold; display:block; margin-bottom:5px;">2. 設定目標</label>' +
+                    '<input type="number" id="fs-time" placeholder="期望充填時間 (秒)" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;">' +
+                    '<div style="font-size:12px; color:#666; margin-top:5px;">*薄壁產品約 0.5~1秒，一般件約 1.5~3秒</div>' +
+                '</div>' +
+                '<button id="fs-btn" style="width:100%; background:#6610f2; color:#fff; padding:12px; border:none; border-radius:5px; cursor:pointer; font-weight:bold; font-size:16px;">計算速度</button>' +
+                '<div id="fs-res" style="margin-top:20px; padding:15px; background:#ede7f6; color:#4a148c; border-radius:5px; display:none; border:1px solid #d1c4e9;"></div>' +
+            '</div>';
 
+        document.getElementById("fs-btn").addEventListener("click", function() {
+            var screw = parseFloat(document.getElementById("fs-screw").value);
+            var stroke = parseFloat(document.getElementById("fs-stroke").value);
+            var time = parseFloat(document.getElementById("fs-time").value);
+
+            if (check(screw && stroke && time, "請輸入完整數據")) {
+                // 1. 射出速度 (直線速度) mm/s
+                var speed_mm_s = stroke / time;
+
+                // 2. 射出率 (體積流率) cm3/s
+                // Area (cm2) = PI * (screw/2/10)^2
+                // Vol (cm3) = Area * (stroke/10)
+                // Rate = Vol / time
+                var r_cm = (screw / 2) / 10;
+                var area_cm2 = Math.PI * r_cm * r_cm;
+                var vol_cm3 = area_cm2 * (stroke / 10);
+                var flow_rate = vol_cm3 / time;
+
+                document.getElementById("fs-res").style.display = "block";
+                document.getElementById("fs-res").innerHTML = 
+                    '<div style="text-align:center;">' +
+                        '<span style="font-size:14px; color:#666;">建議射出速度 (Speed)</span><br>' +
+                        '<strong style="font-size:32px;">' + speed_mm_s.toFixed(1) + '</strong> <span style="font-size:18px;">mm/s</span>' +
+                        '<hr style="border-top:1px solid #d1c4e9; margin:10px 0;">' +
+                        '<span style="font-size:14px; color:#666;">體積流率 (Flow Rate)</span><br>' +
+                        '<strong style="font-size:24px;">' + flow_rate.toFixed(1) + '</strong> <span style="font-size:16px;">cm³/s</span>' +
+                    '</div>';
+            }
+        });
+    }
 });
