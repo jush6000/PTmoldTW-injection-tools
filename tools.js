@@ -217,11 +217,13 @@ document.addEventListener("DOMContentLoaded", function() {
                 
                 '<div style="margin-bottom:15px; background:#e0f7fa; padding:15px; border-radius:5px;">' +
                     '<label style="font-weight:bold; display:block; margin-bottom:5px;">1. 水路規格</label>' +
-                    '<div style="display:flex; gap:10px; margin-bottom:10px;">' +
+                    // 修改重點：外層 div 加入 width:100%
+                    '<div style="display:flex; gap:10px; margin-bottom:10px; width:100%; box-sizing:border-box;">' +
+                        // 修改重點：加入 box-sizing:border-box
                         '<input type="number" id="rn-dia" placeholder="水管孔徑 (mm)" style="flex:1; min-width:0; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">' +
                         '<input type="number" id="rn-flow" placeholder="流量 (L/min)" style="flex:1; min-width:0; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">' +
                     '</div>' +
-                    '<input type="number" id="rn-temp" value="40" placeholder="水溫 (°C)" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px;">' +
+                    '<input type="number" id="rn-temp" value="40" placeholder="水溫 (°C)" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">' +
                     '<div style="font-size:12px; color:#666; margin-top:5px;">*水溫會影響黏度，一般模溫機約 40-60°C</div>' +
                 '</div>' +
 
@@ -236,37 +238,18 @@ document.addEventListener("DOMContentLoaded", function() {
             var temp = parseFloat(document.getElementById("rn-temp").value);
 
             if (check(d_mm && q_lmin && temp, "請輸入完整數據")) {
-                // 1. 水的運動黏度估算 (Kinematic Viscosity)
-                // 簡化公式：40度時約 0.658 cSt (mm2/s)
-                // 估算公式 v = 1.78 / (1 + 0.0337*T + 0.000221*T^2)
-                var viscosity = 1.78 / (1 + 0.0337 * temp + 0.000221 * temp * temp); // unit: mm2/s (cSt)
-
-                // 2. 流速 (Velocity) m/s
-                // V = Q / A
-                // A (mm2) = PI * (d/2)^2
+                var viscosity = 1.78 / (1 + 0.0337 * temp + 0.000221 * temp * temp); 
                 var area_mm2 = Math.PI * Math.pow((d_mm / 2), 2);
-                var q_mm3s = (q_lmin * 1000 * 1000) / 60; // L/min -> mm3/s
+                var q_mm3s = (q_lmin * 1000 * 1000) / 60; 
                 var velocity_mm_s = q_mm3s / area_mm2;
                 var velocity_m_s = velocity_mm_s / 1000;
-
-                // 3. 雷諾數 (Reynolds Number)
-                // Re = (Velocity * Diameter) / Viscosity
-                // 單位要一致：(mm/s * mm) / (mm2/s) -> 無因次
                 var re = (velocity_mm_s * d_mm) / viscosity;
-
-                // 4. 判斷狀態
+                
                 var state = "";
                 var color = "";
-                if (re < 2300) {
-                    state = "層流 (Laminar) - ❌ 冷卻差";
-                    color = "#d32f2f"; // Red
-                } else if (re < 4000) {
-                    state = "過渡流 (Transition) - ⚠️ 普通";
-                    color = "#fbc02d"; // Yellow
-                } else {
-                    state = "紊流 (Turbulent) - ✅ 效率最佳";
-                    color = "#388e3c"; // Green
-                }
+                if (re < 2300) { state = "層流 (Laminar) - ❌ 冷卻差"; color = "#d32f2f"; } 
+                else if (re < 4000) { state = "過渡流 (Transition) - ⚠️ 普通"; color = "#fbc02d"; } 
+                else { state = "紊流 (Turbulent) - ✅ 效率最佳"; color = "#388e3c"; }
 
                 document.getElementById("rn-res").style.display = "block";
                 document.getElementById("rn-res").innerHTML = 
