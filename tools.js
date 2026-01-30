@@ -274,9 +274,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 '<h3 style="margin-top:0; color:#6610f2; text-align:center; border-bottom:2px solid #6610f2; padding-bottom:10px; margin-bottom:20px;">🚀 充填速度計算機</h3>' +
                 '<div style="margin-bottom:15px; background:#f3e5f5; padding:15px; border-radius:5px;">' +
                     '<label style="font-weight:bold; display:block; margin-bottom:5px;">1. 螺桿與行程</label>' +
-                    '<div style="display:flex; gap:10px; margin-bottom:10px;">' +
-                        '<input type="number" id="fs-screw" placeholder="螺桿直徑 (mm)" style="flex:1; padding:10px; border:1px solid #ccc; border-radius:5px;">' +
-                        '<input type="number" id="fs-stroke" placeholder="射出行程 (mm)" style="flex:1; padding:10px; border:1px solid #ccc; border-radius:5px;">' +
+                    '<div style="display:flex; gap:10px; margin-bottom:10px; width:100%; box-sizing:border-box;">' +
+                        '<input type="number" id="fs-screw" placeholder="螺桿直徑 (mm)" style="flex:1; min-width:0; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">' +
+                        '<input type="number" id="fs-stroke" placeholder="射出行程 (mm)" style="flex:1; min-width:0; padding:10px; border:1px solid #ccc; border-radius:5px; box-sizing:border-box;">' +
                     '</div>' +
                     '<div style="font-size:12px; color:#666;">*行程請參考「計量計算機」算出的數值</div>' +
                 '</div>' +
